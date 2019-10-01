@@ -33,7 +33,7 @@ CREATE TABLE GameDatabase.GamesEditions
     GameEdition nvarchar(200) NOT NULL,
     Cost decimal(2) NOT NULL,
     CopiesOwned int NOT NULL,
-    CreationDate datetime2 NOT NULL
+    CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
 
@@ -47,7 +47,7 @@ CREATE TABLE GameDatabase.Platforms
     PlatformID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
     ConsoleID int NOT NULL,
     ConsoleName nvarchar(200) NOT NULL,
-    CreationDate datetime2 NOT NULL
+    CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
 --Consoles Table Creation
@@ -59,7 +59,7 @@ CREATE TABLE GameDatabase.Consoles
 (
     ConsoleID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
     ConsoleEdition nvarchar(200) NOT NULL,
-    CreationDate datetime2 NOT NULL
+    CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
 --GamesConsoles Table Creation
@@ -71,7 +71,7 @@ CREATE TABLE GameDatabase.GamesConsoles
 (
     GameEditionID int NOT NULL,
     ConsoleID int NOT NULL,
-    CreationDate datetime2 NOT NULL
+    CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
 --Developers Table Creation
@@ -83,7 +83,7 @@ CREATE TABLE GameDatabase.Developers
 (
     DeveloperID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
     DeveloperName nvarchar(100) NOT NULL,
-    CreationDate datetime2 NOT NULL
+    CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
 --GameDevelopers Table Creation
@@ -95,7 +95,7 @@ CREATE TABLE GameDatabase.GameDevelopers
 (
     GameID int NOT NULL,
     DeveloperID int NOT NULL,
-    CreationDate datetime2 NOT NULL
+    CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
 ----Modify
@@ -108,7 +108,7 @@ CREATE TABLE GameDatabase.Publishers
 (
     PublisherID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
     PublisherName nvarchar(100) NOT NULL,
-    CreationDate datetime2 NOT NULL
+    CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
 --GamePublishers Table Creation
@@ -121,7 +121,7 @@ CREATE TABLE GameDatabase.GamePublishers
     GameID int NOT NULL,
     PublisherID int NOT NULL,
     PublishingYear date NOT NULL,
-    CreationDate datetime2 NOT NULL
+    CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
 --Genres Table Creation
@@ -133,7 +133,7 @@ CREATE TABLE GameDatabase.Genres
 (
     GenreID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
     GenreName nvarchar(100) NOT NULL,
-    CreationDate datetime2 NOT NULL
+    CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
 --Developers Table Creation
@@ -145,5 +145,5 @@ CREATE TABLE GameDatabase.GameGenres
 (
     GameID int NOT NULL,
     GenreID int NOT NULL,
-    CreationDate datetime2 NOT NULL
+    CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
