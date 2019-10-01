@@ -2,7 +2,6 @@ IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'GameDatabase')
 BEGIN
     EXEC('CREATE SCHEMA GameDatabase')
 END
-
 --Games Table Creation
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Games')
 BEGIN
@@ -10,11 +9,15 @@ BEGIN
 END
 CREATE TABLE GameDatabase.Games
 (
-    GameID int,
-    GameName nvarchar(200),
-    isFavorite bit,
-    ESRB nvarchar(3),
-    CreationDate datetime2
+    GameID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
+    GameName nvarchar(200) NOT NULL,
+    isFavorite bit DEFAULT(0) NOT NULL,
+    ESRB nvarchar(4) NOT NULL,
+    isPAL bit DEFAULT(0) NOT NULL,
+    isNTSC bit DEFAULT(0) NOT NULL,
+    isNTSCJ bit DEFAULT(0) NOT NULL,
+    isNTSCK bit DEFAULT(0) NOT NULL,
+    CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
 
@@ -25,11 +28,12 @@ BEGIN
 END
 CREATE TABLE GameDatabase.GamesEditions
 (
-    GameEditionID int,
-    GameID int,
-    Cost decimal(2),
-    GameEdition nvarchar(200),
-    CreationDate datetime2
+    GameEditionID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
+    GameID int NOT NULL,
+    GameEdition nvarchar(200) NOT NULL,
+    Cost decimal(2) NOT NULL,
+    CopiesOwned int NOT NULL,
+    CreationDate datetime2 NOT NULL
 )
 
 
@@ -40,10 +44,10 @@ BEGIN
 END
 CREATE TABLE GameDatabase.Platforms
 (
-    PlatformID int,
-    ConsoleID int,
-    ConsoleName nvarchar(200),
-    CreationDate datetime2
+    PlatformID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
+    ConsoleID int NOT NULL,
+    ConsoleName nvarchar(200) NOT NULL,
+    CreationDate datetime2 NOT NULL
 )
 
 --Consoles Table Creation
@@ -53,9 +57,9 @@ BEGIN
 END
 CREATE TABLE GameDatabase.Consoles
 (
-    ConsoleID int,
-    ConsoleEdition nvarchar(200),
-    CreationDate datetime2
+    ConsoleID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
+    ConsoleEdition nvarchar(200) NOT NULL,
+    CreationDate datetime2 NOT NULL
 )
 
 --GamesConsoles Table Creation
@@ -65,9 +69,9 @@ BEGIN
 END
 CREATE TABLE GameDatabase.GamesConsoles
 (
-    GameEditionID int,
-    ConsoleID int,
-    CreationDate datetime2
+    GameEditionID int NOT NULL,
+    ConsoleID int NOT NULL,
+    CreationDate datetime2 NOT NULL
 )
 
 --Developers Table Creation
@@ -77,9 +81,9 @@ BEGIN
 END
 CREATE TABLE GameDatabase.Developers
 (
-    DeveloperID int,
-    DeveloperName nvarchar(100),
-    CreationDate datetime2
+    DeveloperID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
+    DeveloperName nvarchar(100) NOT NULL,
+    CreationDate datetime2 NOT NULL
 )
 
 --GameDevelopers Table Creation
@@ -89,9 +93,9 @@ BEGIN
 END
 CREATE TABLE GameDatabase.GameDevelopers
 (
-    GameID int,
-    DeveloperID int,
-    CreationDate datetime2
+    GameID int NOT NULL,
+    DeveloperID int NOT NULL,
+    CreationDate datetime2 NOT NULL
 )
 
 ----Modify
@@ -102,34 +106,34 @@ BEGIN
 END
 CREATE TABLE GameDatabase.Publishers
 (
-    PublisherID int,
-    PublisherName nvarchar(100),
-    CreationDate datetime2
+    PublisherID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
+    PublisherName nvarchar(100) NOT NULL,
+    CreationDate datetime2 NOT NULL
 )
 
---Developers Table Creation
+--GamePublishers Table Creation
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GamePublishers')
 BEGIN
     EXEC('DROP TABLE GameDatabase.GamePublishers')
 END
 CREATE TABLE GameDatabase.GamePublishers
 (
-    GameID int,
-    PublisherID int,
-    PublishingYear date,
-    CreationDate datetime2
+    GameID int NOT NULL,
+    PublisherID int NOT NULL,
+    PublishingYear date NOT NULL,
+    CreationDate datetime2 NOT NULL
 )
 
---Developers Table Creation
+--Genres Table Creation
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Genres')
 BEGIN
     EXEC('DROP TABLE GameDatabase.Genres')
 END
 CREATE TABLE GameDatabase.Genres
 (
-    GenreID int,
-    GenreName nvarchar(100),
-    CreationDate datetime2
+    GenreID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
+    GenreName nvarchar(100) NOT NULL,
+    CreationDate datetime2 NOT NULL
 )
 
 --Developers Table Creation
@@ -139,7 +143,7 @@ BEGIN
 END
 CREATE TABLE GameDatabase.GameGenres
 (
-    GameID int,
-    GenreID int,
-    CreationDate datetime2
+    GameID int NOT NULL,
+    GenreID int NOT NULL,
+    CreationDate datetime2 NOT NULL
 )
