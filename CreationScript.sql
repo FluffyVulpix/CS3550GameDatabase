@@ -3,11 +3,78 @@ BEGIN
     EXEC('CREATE SCHEMA GameDatabase')
 END
 
---Regions Table Creation
+--Drop all tables if they exist in the database already
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Platforms')
+BEGIN
+    EXEC('DROP TABLE GameDatabase.Platforms')
+END
+
+
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GamesEditions')
+BEGIN
+    EXEC('DROP TABLE GameDatabase.GamesEditions')
+END
+
+
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GamesConsoles')
+BEGIN
+    EXEC('DROP TABLE GameDatabase.GamesConsoles')
+END
+
+
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Consoles')
+BEGIN
+    EXEC('DROP TABLE GameDatabase.Consoles')
+END
+
+
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GameGenres')
+BEGIN
+    EXEC('DROP TABLE GameDatabase.GameGenres')
+END
+
+
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Genres')
+BEGIN
+    EXEC('DROP TABLE GameDatabase.Genres')
+END
+
+
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GamePublishers')
+BEGIN
+    EXEC('DROP TABLE GameDatabase.GamePublishers')
+END
+
+
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Publishers')
+BEGIN
+    EXEC('DROP TABLE GameDatabase.Publishers')
+END
+
+
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GameDevelopers')
+BEGIN
+    EXEC('DROP TABLE GameDatabase.GameDevelopers')
+END
+
+
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Developers')
+BEGIN
+    EXEC('DROP TABLE GameDatabase.Developers')
+END
+
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Games')
+BEGIN
+    EXEC('DROP TABLE GameDatabase.Games')
+END
+
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Regions')
 BEGIN
     EXEC('DROP TABLE GameDatabase.Regions')
 END
+
+
+--Regions Table Creation
 CREATE TABLE GameDatabase.Regions
 (
     RegionID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
@@ -17,10 +84,6 @@ CREATE TABLE GameDatabase.Regions
 
 
 --Games Table Creation
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Games')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.Games')
-END
 CREATE TABLE GameDatabase.Games
 (
     GameID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
@@ -32,10 +95,6 @@ CREATE TABLE GameDatabase.Games
 
 
 --GamesEditions Table Creation
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GamesEditions')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.GamesEditions')
-END
 CREATE TABLE GameDatabase.GamesEditions
 (
     GameEditionID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
@@ -43,16 +102,17 @@ CREATE TABLE GameDatabase.GamesEditions
     GameEdition nvarchar(200) NOT NULL,
     Cost decimal(2) NOT NULL,
     CopiesOwned int NOT NULL,
-    RegionID int, --Region Free if null
+    RegionID int DEFAULT(NULL), --Region Free if null
     CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
+ALTER TABLE GameDatabase.GamesEditions
+    ADD CONSTRAINT fk_RegionID FOREIGN KEY (RegionID)
+        REFERENCES GameDatabase.Regions (RegionID),
+    CONSTRAINT fk_GameID FOREIGN KEY (GameID)
+        REFERENCES GameDatabase.Games (GameID);
 
 
 --Platforms Table Creation
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Platforms')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.Platforms')
-END
 CREATE TABLE GameDatabase.Platforms
 (
     PlatformID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
@@ -63,10 +123,6 @@ CREATE TABLE GameDatabase.Platforms
 )
 
 --Consoles Table Creation
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Consoles')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.Consoles')
-END
 CREATE TABLE GameDatabase.Consoles
 (
     ConsoleID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
@@ -75,10 +131,6 @@ CREATE TABLE GameDatabase.Consoles
 )
 
 --GamesConsoles Table Creation
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GamesConsoles')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.GamesConsoles')
-END
 CREATE TABLE GameDatabase.GamesConsoles
 (
     GameEditionID int NOT NULL,
@@ -87,10 +139,6 @@ CREATE TABLE GameDatabase.GamesConsoles
 )
 
 --Developers Table Creation
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Developers')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.Developers')
-END
 CREATE TABLE GameDatabase.Developers
 (
     DeveloperID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
@@ -99,10 +147,6 @@ CREATE TABLE GameDatabase.Developers
 )
 
 --GameDevelopers Table Creation
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GameDevelopers')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.GameDevelopers')
-END
 CREATE TABLE GameDatabase.GameDevelopers
 (
     GameID int NOT NULL,
@@ -112,10 +156,6 @@ CREATE TABLE GameDatabase.GameDevelopers
 
 ----Modify
 --Publishers Table Creation
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Publishers')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.Publishers')
-END
 CREATE TABLE GameDatabase.Publishers
 (
     PublisherID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
@@ -124,10 +164,6 @@ CREATE TABLE GameDatabase.Publishers
 )
 
 --GamePublishers Table Creation
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GamePublishers')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.GamePublishers')
-END
 CREATE TABLE GameDatabase.GamePublishers
 (
     GameID int NOT NULL,
@@ -137,10 +173,6 @@ CREATE TABLE GameDatabase.GamePublishers
 )
 
 --Genres Table Creation
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Genres')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.Genres')
-END
 CREATE TABLE GameDatabase.Genres
 (
     GenreID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
@@ -148,11 +180,7 @@ CREATE TABLE GameDatabase.Genres
     CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
---Developers Table Creation
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GameGenres')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.GameGenres')
-END
+--GameGenres Table Creation
 CREATE TABLE GameDatabase.GameGenres
 (
     GameID int NOT NULL,
