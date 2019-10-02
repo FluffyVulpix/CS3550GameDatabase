@@ -2,6 +2,20 @@ IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'GameDatabase')
 BEGIN
     EXEC('CREATE SCHEMA GameDatabase')
 END
+
+--Regions Table Creation
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Regions')
+BEGIN
+    EXEC('DROP TABLE GameDatabase.Regions')
+END
+CREATE TABLE GameDatabase.Regions
+(
+    RegionID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
+    RegionName nvarchar(20) NOT NULL,
+    CreationDate datetime2 DEFAULT(getdate()) NOT NULL
+)
+
+
 --Games Table Creation
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Games')
 BEGIN
@@ -13,10 +27,6 @@ CREATE TABLE GameDatabase.Games
     GameName nvarchar(200) NOT NULL,
     isFavorite bit DEFAULT(0) NOT NULL,
     ESRB nvarchar(4) NOT NULL,
-    isPAL bit DEFAULT(0) NOT NULL,
-    isNTSC bit DEFAULT(0) NOT NULL,
-    isNTSCJ bit DEFAULT(0) NOT NULL,
-    isNTSCK bit DEFAULT(0) NOT NULL,
     CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
@@ -33,6 +43,7 @@ CREATE TABLE GameDatabase.GamesEditions
     GameEdition nvarchar(200) NOT NULL,
     Cost decimal(2) NOT NULL,
     CopiesOwned int NOT NULL,
+    RegionID int, --Region Free if null
     CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
@@ -47,6 +58,7 @@ CREATE TABLE GameDatabase.Platforms
     PlatformID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
     ConsoleID int NOT NULL,
     ConsoleName nvarchar(200) NOT NULL,
+    RegionID int, --Region Free if null
     CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 
