@@ -4,74 +4,41 @@ BEGIN
 END
 
 --Drop all tables if they exist in the database already
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Platforms')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.Platforms')
-END
-
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GamesConsoles')
+    DROP TABLE GameDatabase.GamesConsoles;
 
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GamesEditions')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.GamesEditions')
-END
+    DROP TABLE GameDatabase.GamesEditions;
 
-
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GamesConsoles')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.GamesConsoles')
-END
-
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Platforms')
+    DROP TABLE GameDatabase.Platforms;
 
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Consoles')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.Consoles')
-END
-
+    DROP TABLE GameDatabase.Consoles;
 
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GameGenres')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.GameGenres')
-END
-
+    DROP TABLE GameDatabase.GameGenres;
 
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Genres')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.Genres')
-END
-
+    DROP TABLE GameDatabase.Genres;
 
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GamePublishers')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.GamePublishers')
-END
-
+    DROP TABLE GameDatabase.GamePublishers;
 
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Publishers')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.Publishers')
-END
-
+    DROP TABLE GameDatabase.Publishers;
 
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GameDevelopers')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.GameDevelopers')
-END
-
+    DROP TABLE GameDatabase.GameDevelopers;
 
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Developers')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.Developers')
-END
+    DROP TABLE GameDatabase.Developers
 
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Games')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.Games')
-END
+    DROP TABLE GameDatabase.Games
 
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Regions')
-BEGIN
-    EXEC('DROP TABLE GameDatabase.Regions')
-END
+    DROP TABLE GameDatabase.Regions
 
 
 --Regions Table Creation
@@ -106,9 +73,9 @@ CREATE TABLE GameDatabase.GamesEditions
     CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
 ALTER TABLE GameDatabase.GamesEditions
-    ADD CONSTRAINT fk_RegionID FOREIGN KEY (RegionID)
+    ADD CONSTRAINT fk_GamesEditions_RegionID FOREIGN KEY (RegionID)
         REFERENCES GameDatabase.Regions (RegionID),
-    CONSTRAINT fk_GameID FOREIGN KEY (GameID)
+    CONSTRAINT fk_GamesEditions_GameID FOREIGN KEY (GameID)
         REFERENCES GameDatabase.Games (GameID);
 
 
@@ -116,11 +83,13 @@ ALTER TABLE GameDatabase.GamesEditions
 CREATE TABLE GameDatabase.Platforms
 (
     PlatformID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
-    ConsoleID int NOT NULL,
     ConsoleName nvarchar(200) NOT NULL,
-    RegionID int, --Region Free if null
+    RegionID int DEFAULT(NULL), --Region Free if null
     CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
+ALTER TABLE GameDatabase.Platforms
+    ADD CONSTRAINT fk_Platforms_RegionID FOREIGN KEY (RegionID)
+        REFERENCES GameDatabase.Regions (RegionID);
 
 --Consoles Table Creation
 CREATE TABLE GameDatabase.Consoles
@@ -134,9 +103,15 @@ CREATE TABLE GameDatabase.Consoles
 CREATE TABLE GameDatabase.GamesConsoles
 (
     GameEditionID int NOT NULL,
-    ConsoleID int NOT NULL,
+    PlatformID int NOT NULL,
     CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
+ALTER TABLE GameDatabase.GamesConsoles
+    ADD CONSTRAINT pk_GamesConsoles_GameEditionIDPlatformID PRIMARY KEY (GameEditionID,PlatformID),
+    CONSTRAINT fk_GamesConsoles_GameEditionID FOREIGN KEY (GameEditionID)
+        REFERENCES GameDatabase.GamesEditions (GameEditionID),
+    CONSTRAINT fk_GamesConsoles_PlatformID FOREIGN KEY (PlatformID)
+        REFERENCES GameDatabase.Platforms (PlatformID);
 
 --Developers Table Creation
 CREATE TABLE GameDatabase.Developers
@@ -153,6 +128,12 @@ CREATE TABLE GameDatabase.GameDevelopers
     DeveloperID int NOT NULL,
     CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
+ALTER TABLE GameDatabase.GameDevelopers
+    ADD CONSTRAINT pk_GameDevelopers_GameIDDeveloperID PRIMARY KEY (GameID,DeveloperID),
+    CONSTRAINT fk_GameDevelopers_GameID FOREIGN KEY (GameID)
+        REFERENCES GameDatabase.Games (GameID),
+    CONSTRAINT fk_GameDevelopers_DeveloperID FOREIGN KEY (DeveloperID)
+        REFERENCES GameDatabase.Developers (DeveloperID)
 
 ----Modify
 --Publishers Table Creation
@@ -171,6 +152,12 @@ CREATE TABLE GameDatabase.GamePublishers
     PublishingYear date NOT NULL,
     CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
+ALTER TABLE GameDatabase.GamePublishers
+    ADD CONSTRAINT pk_GamePublishers_GameIDPublisherD PRIMARY KEY (GameID,PublisherID),
+        CONSTRAINT fk_GamePublishers_GameID FOREIGN KEY (GameID)
+            REFERENCES GameDatabase.Games (GameID),
+        CONSTRAINT fk_GamePublishers_PublisherID FOREIGN KEY (PublisherID)
+            REFERENCES GameDatabase.Publishers (PublisherID)
 
 --Genres Table Creation
 CREATE TABLE GameDatabase.Genres
@@ -187,3 +174,9 @@ CREATE TABLE GameDatabase.GameGenres
     GenreID int NOT NULL,
     CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
+ALTER TABLE GameDatabase.GameGenres
+    ADD CONSTRAINT pk_GameGenres_GameIDGenreID PRIMARY KEY (GameID,GenreID),
+        CONSTRAINT fk_GameGenres_GameID FOREIGN KEY (GameID)
+            REFERENCES GameDatabase.Games (GameID),
+        CONSTRAINT fk_GameGenres_GenreID FOREIGN KEY (GenreID)
+            REFERENCES GameDatabase.Genres (GenreID)
