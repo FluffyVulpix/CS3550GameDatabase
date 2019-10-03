@@ -12,12 +12,11 @@ IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GamesEditions')
     DROP TABLE GameDatabase.GamesEditions;
 ;
 
-IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Platforms')
-    DROP TABLE GameDatabase.Platforms;
-;
-
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Consoles')
     DROP TABLE GameDatabase.Consoles;
+;
+IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'Platforms')
+    DROP TABLE GameDatabase.Platforms;
 ;
 
 IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'GameGenres')
@@ -106,9 +105,14 @@ ALTER TABLE GameDatabase.Platforms
 CREATE TABLE GameDatabase.Consoles
 (
     ConsoleID int IDENTITY(1,1) PRIMARY KEY NOT NULL,
+    PlatformID int NOT NULL,
     ConsoleEdition nvarchar(200) NOT NULL,
     CreationDate datetime2 DEFAULT(getdate()) NOT NULL
 )
+ALTER TABLE GameDatabase.Consoles
+    ADD CONSTRAINT fk_Consoles_PlatformID FOREIGN KEY (PlatformID)
+        REFERENCES GameDatabase.Platforms (PlatformID)
+;
 
 --GamesConsoles Table Creation
 CREATE TABLE GameDatabase.GamesConsoles
@@ -219,30 +223,6 @@ VALUES
 ,('Cuphead',0,'E')
 ,('Halo Wars 2',0,'T')
 
-INSERT INTO GameDatabase.Consoles
-(
-    ConsoleEdition
-)
-VALUES
-('Xbox One X')
-,('Xbox One S')
-,('PlayStation 4')
-,('PlayStation 4 Pro')
-,('Nintendo Switch')
-,('Nintendo Switch Lite')
-,('Super Nintendo Entertainment System (SNES)')
-,('Nintendo 64')
-
-INSERT INTO Gamedatabase.Regions
-(
-    RegionName
-)
-VALUES 
-('NTSC-J')
-,('NTSC')
-,('PAL')
-;
-
 INSERT INTO GameDatabase.Platforms
 (
     ConsoleName,
@@ -254,6 +234,32 @@ VALUES
 ,('Nintendo Switch',NULL) --Region Free
 ,('Nintendo 64', (SELECT RegionID FROM GameDatabase.Regions WHERE RegionName = 'NTSC'))
 ,('Super Nintendo Entertainment System (SNES)', (SELECT RegionID FROM GameDatabase.Regions WHERE RegionName = 'NTSC'))
+;
+
+INSERT INTO GameDatabase.Consoles
+(
+    ConsoleEdition,
+    PlatformID
+)
+VALUES
+('Xbox One X', (SELECT PlatformID FROM GameDatabase.Platforms WHERE ConsoleName = 'Xbox One'))
+,('Xbox One S', (SELECT PlatformID FROM GameDatabase.Platforms WHERE ConsoleName = 'Xbox One'))
+,('PlayStation 4', (SELECT PlatformID FROM GameDatabase.Platforms WHERE ConsoleName = 'PlayStation 4'))
+,('PlayStation 4 Pro', (SELECT PlatformID FROM GameDatabase.Platforms WHERE ConsoleName = 'PlayStation 4'))
+,('Nintendo Switch', (SELECT PlatformID FROM GameDatabase.Platforms WHERE ConsoleName = 'Nintendo Switch'))
+,('Nintendo Switch Lite', (SELECT PlatformID FROM GameDatabase.Platforms WHERE ConsoleName = 'Nintendo Switch'))
+,('Super Nintendo Entertainment System (SNES)', (SELECT PlatformID FROM GameDatabase.Platforms WHERE ConsoleName = 'Super Nintendo Entertainment System (SNES)'))
+,('Nintendo 64', (SELECT PlatformID FROM GameDatabase.Platforms WHERE ConsoleName = 'Nintendo 64'))
+;
+
+INSERT INTO Gamedatabase.Regions
+(
+    RegionName
+)
+VALUES 
+('NTSC-J')
+,('NTSC')
+,('PAL')
 ;
 
 INSERT INTO GameDatabase.GamesEditions
@@ -338,26 +344,6 @@ EXEC usp_addGamesConsoles 'FIFA 19','Xbox One';
 EXEC usp_addGamesConsoles 'NHL 19','Xbox One';
 EXEC usp_addGamesConsoles 'Cuphead','Xbox One';
 EXEC usp_addGamesConsoles 'Halo Wars 2','Xbox One';
-
-/*
-INSERT INTO GameDatabase.GamesConsoles
-VALUES
-((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Gears 5'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Super Mario Odyssey'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Nintendo Switch'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Horizon Zero Dawn'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Playstation 4'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Donkey Kong Country'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Super Nintendo Entertainment System (SNES)'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Halo 5: Guardians'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'The Last of Us'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Playstation 4'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Super Mario 64'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Nintendo 64'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'God Of War'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Playstation 4'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Overwatch'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Titanfal 2'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Marvel`s Spider-Man'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Playstation 4'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'FIFA 19'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'NHL 19'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Cuphead'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
-,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Halo Wars 2'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
-*/
 
 INSERT INTO GameDatabase.Genres
 (
@@ -470,4 +456,67 @@ VALUES
 ,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Cuphead'),			 (SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = 'Studio MDHR'))
 ,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Halo Wars 2'),		 (SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = '343 Industries'))
 
-SELECT * FROM GameDatabase.Games;
+--Generate a list of consoles
+SELECT 
+P.ConsoleName, 
+C.ConsoleEdition
+
+FROM 
+    GameDatabase.Consoles C 
+    JOIN GameDatabase.Platforms P ON C.PlatformID = P.PlatformID;
+
+
+--Returns all games in the collection
+SELECT
+	G.GameName,
+    E.GameEdition
+
+FROM
+	GameDatabase.Games G 
+    JOIN GameDatabase.GamesEditions E ON G.GameID = E.GameID;
+
+
+--Returns all Xbox One games
+SELECT
+	G.GameName
+
+FROM
+	GameDatabase.Games G 
+    JOIN GameDatabase.GamesEditions GE ON G.GameID = GE.GameID
+    JOIN GameDatabase.GamesConsoles GC ON GC.GameEditionID = GE.GameEditionID
+    JOIN GameDatabase.Platforms P ON P.PlatformID = GC.PlatformID
+
+WHERE
+    P.ConsoleName = 'Xbox One';
+	
+
+--Returns all games with multiple copies (With the platform they are on)
+SELECT
+	G.GameName,
+	GE.GameEdition,
+	P.ConsoleName
+	
+FROM
+    GameDatabase.GamesEditions GE 
+    JOIN GameDatabase.Games G ON GE.GameID = G.GameID
+    JOIN GameDatabase.GamesConsoles GC ON GC.GameEditionID = GE.GameEditionID
+    JOIN GameDatabase.Platforms P ON GC.PlatformID = P.PlatformID
+
+WHERE
+    GE.CopiesOwned > 1;
+
+
+--Returns all Role Playing games, including the platform they are on
+SELECT
+	G.GameName,
+	P.ConsoleName
+
+FROM
+	GameDatabase.GamesEditions GE JOIN GameDatabase.Games G ON GE.GameID = G.GameID
+    JOIN GameDatabase.GamesConsoles GC ON GC.GameEditionID = GE.GameEditionID
+    JOIN GameDatabase.Platforms P ON GC.PlatformID = P.PlatformID
+    JOIN GameDatabase.GameGenres GG ON GG.GameID = GE.GameID
+    JOIN GameDatabase.Genres GEN ON GEN.GenreID = GG.GenreID
+
+WHERE
+	GEN.GenreName = 'Role Playing';
