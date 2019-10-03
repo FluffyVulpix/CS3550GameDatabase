@@ -288,6 +288,7 @@ VALUES
 ,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Halo Wars 2'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
 
 --Adding a GamesConsoles link to the database
+--TODO: Region linking to make sure a console isn't linked to a game it can't play.
 IF EXISTS
 	(SELECT * FROM INFORMATION_SCHEMA.ROUTINES
 		WHERE SPECIFIC_NAME = 'usp_addGamesConsoles')
