@@ -148,7 +148,6 @@ ALTER TABLE GameDatabase.GameDevelopers
         REFERENCES GameDatabase.Developers (DeveloperID)
 ;
 
-----Modify
 --Publishers Table Creation
 CREATE TABLE GameDatabase.Publishers
 (
@@ -195,3 +194,280 @@ ALTER TABLE GameDatabase.GameGenres
         CONSTRAINT fk_GameGenres_GenreID FOREIGN KEY (GenreID)
             REFERENCES GameDatabase.Genres (GenreID)
 ;
+
+
+INSERT INTO GameDatabase.Games
+(
+    GameName,
+    isFavorite,
+    ESRB
+)
+VALUES
+('Gears 5',0,'M')
+,('Super Mario Odyssey',1,'E')
+,('Horizon Zero Dawn',1,'T')
+,('Donkey Kong Country',0,'E')
+,('Halo 5: Guardians',1,'M')
+,('The Last of Us',0,'M')
+,('Super Mario 64',1,'E')
+,('God of War',0,'M')
+,('Overwatch',1,'T')
+,('Titanfall 2',0,'M')
+,('Marvel`s Spider-Man',0,'T')
+,('FIFA 19',0,'E')
+,('NHL 19',0,'E')
+,('Cuphead',0,'E')
+,('Halo Wars 2',0,'T')
+
+INSERT INTO GameDatabase.Consoles
+(
+    ConsoleEdition
+)
+VALUES
+('Xbox One X')
+,('Xbox One S')
+,('PlayStation 4')
+,('PlayStation 4 Pro')
+,('Nintendo Switch')
+,('Nintendo Switch Lite')
+,('Super Nintendo Entertainment System (SNES)')
+,('Nintendo 64')
+
+INSERT INTO Gamedatabase.Regions
+(
+    RegionName
+)
+VALUES 
+('NTSC-J')
+,('NTSC')
+,('PAL')
+;
+
+INSERT INTO GameDatabase.Platforms
+(
+    ConsoleName,
+    RegionID
+)
+VALUES
+('PlayStation 4',NULL) --Region Free
+,('Xbox One',NULL) --Region Free
+,('Nintendo Switch',NULL) --Region Free
+,('Nintendo 64', (SELECT RegionID FROM GameDatabase.Regions WHERE RegionName = 'NTSC'))
+,('Super Nintendo Entertainment System (SNES)', (SELECT RegionID FROM GameDatabase.Regions WHERE RegionName = 'NTSC'))
+;
+
+INSERT INTO GameDatabase.GamesEditions
+(
+    GameID,
+    GameEdition,
+    Cost,
+    CopiesOwned,
+    RegionID
+)
+VALUES 
+((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Gears 5'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Super Mario Odyssey'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Horizon Zero Dawn'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Donkey Kong Country'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Halo 5: Guardians'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'The Last of Us'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Super Mario 64'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'God Of War'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Overwatch'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Titanfall 2'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Marvel`s Spider-Man'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'FIFA 19'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'NHL 19'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Cuphead'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Halo Wars 2'),'Basic',59.99,1,(SELECT RegionID FROM Gamedatabase.Regions WHERE RegionName = 'NTSC'))
+
+--Adding a GamesConsoles link to the database
+IF EXISTS
+	(SELECT * FROM INFORMATION_SCHEMA.ROUTINES
+		WHERE SPECIFIC_NAME = 'usp_addGamesConsoles')
+	DROP PROCEDURE dbo.usp_addGamesConsoles
+GO
+CREATE PROCEDURE dbo.usp_addGamesConsoles
+    @GameName nvarchar(200),
+    @PlatformName nvarchar(200)
+AS
+BEGIN
+    DECLARE @GameEditionID int;
+        SELECT @GameEditionID = gdge.GameEditionID
+            FROM GameDatabase.GamesEditions gdge
+                INNER JOIN GameDatabase.Games gdg ON gdge.GameID = gdg.GameID
+            WHERE gdg.GameName = @GameName
+    ;
+    
+    DECLARE @PlatformID int;
+        SELECT @PlatformID = gdp.PlatformID
+            FROM GameDatabase.Platforms gdp
+            WHERE gdp.ConsoleName = @PlatformName
+    ;
+
+	BEGIN TRY
+		INSERT INTO GameDatabase.GamesConsoles
+			(
+				GameEditionID,
+                PlatformID
+			)
+			VALUES
+			(
+				@GameEditionID,
+                @PlatformID
+			)
+	END TRY
+	BEGIN CATCH
+		PRINT('INSERT INTO pbUser FAILED');
+	END CATCH
+END
+GO
+
+EXEC usp_addGamesConsoles 'Gears 5','Xbox One';
+EXEC usp_addGamesConsoles 'Super Mario Odyssey','Nintendo Switch';
+EXEC usp_addGamesConsoles 'Horizon Zero Dawn','PlayStation 4';
+EXEC usp_addGamesConsoles 'Donkey Kong Country','Super Nintendo Entertainment System (SNES)';
+EXEC usp_addGamesConsoles 'Halo 5: Guardians','Xbox One';
+EXEC usp_addGamesConsoles 'The Last of Us','Playstation 4';
+EXEC usp_addGamesConsoles 'Super Mario 64','Nintendo 64';
+EXEC usp_addGamesConsoles 'God of War','PlayStation 4';
+EXEC usp_addGamesConsoles 'Overwatch','Xbox One';
+EXEC usp_addGamesConsoles 'Titanfall 2','Xbox One';
+EXEC usp_addGamesConsoles 'Marvel`s Spider-Man','PlayStation 4';
+EXEC usp_addGamesConsoles 'FIFA 19','Xbox One';
+EXEC usp_addGamesConsoles 'NHL 19','Xbox One';
+EXEC usp_addGamesConsoles 'Cuphead','Xbox One';
+EXEC usp_addGamesConsoles 'Halo Wars 2','Xbox One';
+
+/*
+INSERT INTO GameDatabase.GamesConsoles
+VALUES
+((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Gears 5'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Super Mario Odyssey'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Nintendo Switch'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Horizon Zero Dawn'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Playstation 4'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Donkey Kong Country'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Super Nintendo Entertainment System (SNES)'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Halo 5: Guardians'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'The Last of Us'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Playstation 4'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Super Mario 64'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Nintendo 64'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'God Of War'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Playstation 4'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Overwatch'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Titanfal 2'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Marvel`s Spider-Man'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Playstation 4'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'FIFA 19'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'NHL 19'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Cuphead'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
+,((SELECT GameEditionID FROM Gamedatabase.GamesEditions WHERE GameName = 'Halo Wars 2'),(SELECT PlatformID FROM Gamedatabase WHERE ConsoleName = 'Xbox One'))
+*/
+
+INSERT INTO GameDatabase.Genres
+(
+    GenreName
+)
+VALUES
+('Shooter')
+,('Platformer')
+,('Strategy')
+,('Sports')
+,('Role Playing')
+
+
+INSERT INTO GameDatabase.GameGenres
+(
+    GameID,
+    GenreID
+)
+VALUES
+((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Gears 5'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Shooter'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Super Mario Odyssey'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Platformer'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Horizon Zero Dawn'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Shooter'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Donkey Kong Country'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Platformer'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Halo 5: Guardians'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Shooter'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'The Last of Us'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Shooter'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Super Mario 64'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Platformer'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'God Of War'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Role Playing'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Overwatch'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Shooter'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Titanfall 2'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Shooter'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Marvel`s Spider-Man'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Role Playing'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'FIFA 19'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Sports'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'NHL 19'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Sports'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Cuphead'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Platformer'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Halo Wars 2'),(SELECT GenreID FROM Gamedatabase.Genres WHERE GenreName = 'Strategy'))
+
+
+INSERT INTO GameDatabase.Publishers
+VALUES 
+('Microsoft Studios',GETDATE()) -- Halos, Gears
+,('EA Sports',GETDATE()) --FIFA NHL
+,('Sony Interactive Entertainment',GETDATE())--SpiderMan, GOd
+,('Blizzard Entertainment',GETDATE())--Overwatch
+,('Nintendo',GETDATE())--Super Mario 64, Odyssey, Kong Country
+,('Sony Computer Entertainment, Inc. (SCEI)',GETDATE())--The Last of us, II Horizon
+,('Studio MDHR',GETDATE())--Cuphead
+,('Electronic Arts',GETDATE()) -- Titanfall
+
+
+INSERT INTO GameDatabase.GamePublishers
+(
+    GameID,
+    PublisherID,
+    PublishingYear
+)
+VALUES
+((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Gears 5'),(SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'Microsoft Studios'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Super Mario Odyssey'),(SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'Nintendo'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Horizon Zero Dawn'),	 (SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'Sony Computer Entertainment, Inc. (SCEI)'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Donkey Kong Country'),(SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'Nintendo'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Halo 5: Guardians'),	 (SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'Microsoft Studios'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'The Last of Us'),	 (SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'Sony Computer Entertainment, Inc. (SCEI)'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Super Mario 64'),	 (SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'Nintendo'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'God Of War'),		 (SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'Sony Interactive Entertainment'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Overwatch'),			 (SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'Blizzard Entertainment'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Titanfall 2'),		 (SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'Electronic Arts'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Marvel`s Spider-Man'),(SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'Sony Interactive Entertainment'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'FIFA 19'),			 (SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'EA Sports'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'NHL 19'),			 (SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'EA Sports'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Cuphead'),			 (SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'Studio MDHR'),'2019/09/06')
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Halo Wars 2'),		 (SELECT PublisherID FROM Gamedatabase.Publishers WHERE PublisherName = 'Microsoft Studios'),'2019/09/06')
+
+
+
+
+INSERT INTO GameDatabase.Developers
+VALUES
+('343 Industries',GETDATE())-- Halos, Gears
+,('EA Canada',GETDATE())--FIFA NHL
+,('Insomniac Games',GETDATE())--SpiderMan
+,('Blizzard Entertainment',GETDATE())--Overwatch
+,('Nintendo EAD',GETDATE())--Super Mario 64
+,('Naughty Dog',GETDATE())--The Last of us, II
+,('Nintendo EPD',GETDATE())-- Odyssey
+,('Guerrilla Games',GETDATE()) --Horizon
+,('Studio MDHR',GETDATE())--Cuphead
+,('Respawn Entertainment',GETDATE()) -- Titanfall
+,('Rare',GETDATE()) --KongCountry
+,('SIE Santa Monica Studio',GETDATE()) --GOD
+
+
+INSERT INTO GameDatabase.GameDevelopers
+(
+    GameID,
+    DeveloperID
+)
+VALUES
+((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Gears 5'),(SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = '343 Industries'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Super Mario Odyssey'),(SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = 'Nintendo EPD'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Horizon Zero Dawn'),	 (SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = 'Guerrilla Games'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Donkey Kong Country'),(SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = 'Rare'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Halo 5: Guardians'),	 (SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = '343 Industries'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'The Last of Us'),	 (SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = 'Naughty Dog'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Super Mario 64'),	 (SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = 'Nintendo EAD'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'God Of War'),		 (SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = 'SIE Santa Monica Studio'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Overwatch'),			 (SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = 'Blizzard Entertainment'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Titanfall 2'),		 (SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = 'Respawn Entertainment'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Marvel`s Spider-Man'),(SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = 'Insomniac Games'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'FIFA 19'),			 (SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = 'EA Canada'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'NHL 19'),			 (SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = 'EA Canada'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Cuphead'),			 (SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = 'Studio MDHR'))
+,((SELECT GameID FROM Gamedatabase.Games WHERE GameName = 'Halo Wars 2'),		 (SELECT DeveloperID FROM Gamedatabase.Developers WHERE DeveloperName = '343 Industries'))
+
+SELECT * FROM GameDatabase.Games;
